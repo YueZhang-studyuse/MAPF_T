@@ -5,10 +5,12 @@ Instances are under instance foloder, for turnings, please use scenarios under s
 
 # Run
 
-Then, you are able to run the code:
+To run the code:
 ```shell script
 ./cbs -m ./instance/random-32-32-20/random-32-32-20.map -a ./instance/random-32-32-20/scen-random-rotation/random-32-32-20-random-1.scen -o test.csv -k 30 -t 60
 ```
+
+--- Original CBSH2-RTC Readme ---
 
 # CBSH2-RTC
 An optimal solver for Multi-Agent Path Finding.
