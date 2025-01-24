@@ -26,6 +26,8 @@ def changescen(filename,writefile):
 #changescen("instances/random_map_temp/random-32-32-20-random-1.scen","instances/random_map/random-32-32-20-random-1.scen")
 
 for i in range(25):
-    r_file = "instances/random_map_temp/random-32-32-20-random-"+str(i+1)+".scen"
-    w_file = "instances/random_map/random-32-32-20-random-"+str(i+1)+".scen"
+    # r_file = "instances/random_map_temp/random-32-32-20-random-"+str(i+1)+".scen"
+    # w_file = "instances/random_map/random-32-32-20-random-"+str(i+1)+".scen"
+    r_file = "instances/empty32/scen-random/empty-32-32-random-"+str(i+1)+".scen"
+    w_file = "instances/empty32/empty-32-32-random-"+str(i+1)+".scen"
     changescen(r_file,w_file)
