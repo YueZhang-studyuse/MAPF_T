@@ -1,4 +1,16 @@
-<!-- # CBSH2-RTC
+This repo is built on top of the from CBSH2-RTC porject
+
+# Instance
+Instances are under instance foloder, for turnings, please use scenarios under scen-random-rotation (random generated start/goal directions) or scen-random-rotation-fix (fixed start/goal directions)
+
+# Run
+
+Then, you are able to run the code:
+```shell script
+./cbs -m ./instance/random-32-32-20/random-32-32-20.map -a ./instance/random-32-32-20/scen-random-rotation/random-32-32-20-random-1.scen -o test.csv -k 30 -t 60
+```
+
+# CBSH2-RTC
 An optimal solver for Multi-Agent Path Finding.
  
 
@@ -112,4 +124,4 @@ In Proceedings of the International Conference on Automated Planning and Schedul
  
 [10] Jiaoyang Li, Daniel Harabor, Peter J. Stuckey, Ariel Felner, Hang Ma, and Sven Koenig.
 Disjoint Splitting for Multi-Agent Path Finding with Conflict-Based Search.
-In Proceedings of the International Conference on Automated Planning and Scheduling (ICAPS), pages 279-283, 2019. -->
+In Proceedings of the International Conference on Automated Planning and Scheduling (ICAPS), pages 279-283, 2019.
