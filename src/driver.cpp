@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 		("targetReasoning", po::value<bool>()->default_value(true), "Using target reasoning")
 		("restart", po::value<int>()->default_value(1), "number of restart times (at least 1)")
 		("sipp", po::value<bool>()->default_value(false), "using sipp as the single agent solver")
+		("prune", po::value<bool>()->default_value(true), "enable prunning in CBS")
 		;
 
 	po::variables_map vm;
@@ -144,6 +145,7 @@ int main(int argc, char** argv)
 	cbs.setMutexReasoning(vm["mutexReasoning"].as<bool>());
 	cbs.setSavingStats(vm["stats"].as<bool>());
 	cbs.setNodeLimit(vm["nodeLimit"].as<int>());
+	cbs.setPrune(vm["prune"].as<bool>());
 
 	// cbs.setPrioritizeConflicts(true);
 	// cbs.setDisjointSplitting(vm["disjointSplitting"].as<bool>());
