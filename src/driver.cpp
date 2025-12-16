@@ -137,10 +137,10 @@ int main(int argc, char** argv)
 	CBS cbs(instance, vm["sipp"].as<bool>(), vm["screen"].as<int>());
 	cbs.setPrioritizeConflicts(vm["prioritizingConflicts"].as<bool>());
 	cbs.setDisjointSplitting(vm["disjointSplitting"].as<bool>());
-	cbs.setBypass(true);
+	cbs.setBypass(vm["bypass"].as<bool>());
 	cbs.setRectangleReasoning(r);
 	cbs.setCorridorReasoning(c);
-	cbs.setHeuristicType(heuristics_type::WDG);
+	cbs.setHeuristicType(h);
 	cbs.setTargetReasoning(vm["targetReasoning"].as<bool>());
 	cbs.setMutexReasoning(vm["mutexReasoning"].as<bool>());
 	cbs.setSavingStats(vm["stats"].as<bool>());
@@ -188,8 +188,6 @@ int main(int argc, char** argv)
 	}
     if (cbs.solution_found && vm.count("outputPaths"))
         cbs.savePaths(vm["outputPaths"].as<string>());
-
-	cbs.saveCT("test_noprune.dot");
 	cbs.clearSearchEngines();
 	return 0;
 

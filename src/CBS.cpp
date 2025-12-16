@@ -163,6 +163,7 @@ void CBS::findConflicts(CBSNode& curr)
 	runtime_detect_conflicts += (double) (clock() - t) / CLOCKS_PER_SEC;
 }
 
+
 shared_ptr<Conflict> CBS::chooseConflict(const CBSNode& node) const
 {
 	if (screen == 3)
@@ -269,6 +270,15 @@ void CBS::classifyConflicts(CBSNode& node)
 		else if (cardinal1 || cardinal2)
 		{
 			con->priority = conflict_priority::SEMI;
+			if (cardinal2)
+			{
+				int agent = con->a1;
+				con->a1 = con->a2;
+				con->a2 = agent;
+				list<Constraint> c1 = con->constraint1;
+				con->constraint1 = con->constraint2;
+				con->constraint2 = c1;
+			}
 		}
 		else
 		{
@@ -415,7 +425,6 @@ bool CBS::generateChild(CBSNode* node, CBSNode* parent)
 	node->g_val = parent->g_val;
 	node->makespan = parent->makespan;
 	node->depth = parent->depth + 1;
-	node->path_costs = node->parent->path_costs;
 	int agent, x, y, t;
 	constraint_type type;
 	assert(node->constraints.size() > 0);
@@ -514,6 +523,7 @@ bool CBS::generateChild(CBSNode* node, CBSNode* parent)
 
 	assert(!node->paths.empty());
 	//add new info for pruning (path cost)
+	node->path_costs = node->parent->path_costs;
 	for (auto p: node->paths)
 	{
 		node->path_costs[p.first] = p.second.size();
@@ -613,7 +623,7 @@ void CBS::saveResults(const string& fileName, const string& instanceName) const
 				 "runtime of building MDDs,runtime of building constraint tables,runtime of building CATs," <<
 				 "runtime of path finding,runtime of generating child nodes," <<
 				 "preprocessing runtime,solver name,instance name" << 
-				 ",timeout,reinsert"<<endl;
+				 ",timeout"<<endl;
 		addHeads.close();
 	}
 	ofstream stats(fileName, std::ios::app);
@@ -640,7 +650,7 @@ void CBS::saveResults(const string& fileName, const string& instanceName) const
 		runtime_path_finding << "," << runtime_generate_child << "," <<
 
 		runtime_preprocessing << "," << getSolverName() << "," << instanceName <<
-		","<<timeout_constraint<<","<<num_HL_reinsert<< endl;
+		","<<timeout_constraint<< endl;
 	
 	stats.close();
 }
@@ -668,16 +678,14 @@ void CBS::saveCT(const string &fileName) const // write the CT to a file
 	output << "center = true;" << endl;
 	for (auto node : allNodes_table)
 	{
-		if (node->pruned)
-			continue;
 		output << node->time_generated << " [label=\"#" << node->time_generated 
 					<< "\ng+h="<< node->g_val << "+" << node->h_val 
 					<< "\nd=" << node->tie_breaking << "\"]" << endl;
 		if (node == dummy_start)
 			continue;
 		output << node->parent->time_generated << " -> " << node->time_generated << " [label=\"";
-		// for (const auto &constraint : node->constraints)
-		// 	output << constraint;
+		for (const auto &constraint : node->constraints)
+			output << constraint;
 		output << "\nAgents ";
         for (const auto &path : node->paths)
             output << path.first << "(+" << path.second.size() - paths_found_initially[path.first].size() << ") ";
@@ -756,8 +764,6 @@ string CBS::getSolverName() const
 		name += "+M";
 	if (bypass)
 		name += "+BP";
-	if (pruning)
-		name += "+P";
 	name += " with " + search_engines[0]->getName();
 	return name;
 }
@@ -766,13 +772,8 @@ bool CBS::checkSubsumption(CBSNode* n1, CBSNode* n2) //check whether n1 can subs
 {
 	int agent, x, y, t;
 	constraint_type type;
+	assert(node->constraints.size() > 0);
 	tie(agent, x, y, t, type) = n1->constraints.front();
-
-	int agent1, x1, y1, t1;
-	constraint_type type1;
-	tie(agent1, x1, y1, t1, type1) = n2->constraints.front();
-	if (agent != agent1)
-		return false;
 
 	//first, all n1's path cost should <= n2's
 	for (int i = 0; i < num_of_agents; i++)
@@ -793,65 +794,15 @@ bool CBS::checkSubsumption(CBSNode* n1, CBSNode* n2) //check whether n1 can subs
 		return false;
 	}
 
-	ConstraintTable ct(initial_constraints[agent]);
-	ct.build(*n2, agent);
 
-	if (type == constraint_type::VERTEX)
-	{
-		for (auto con: n1->constraints)
-		{
-			tie(agent, x, y, t, type) = con;
-			if (search_engines[agent]->checkReachable(x, ct, t))
-				return false;
-		}
-	}
-	if (type == constraint_type::EDGE)
-	{
-		if (search_engines[agent]->checkReachable(x, ct, t-1) && search_engines[agent]->checkReachable(y, ct, t))
-				return false;
-	}
-	if (type == constraint_type::RANGE)
-	{
-		y = max(search_engines[agent]->compute_heuristic(paths[agent]->front().location,x),y);
-		for (int time = t; time >= y; time--)
-		{
-			if (search_engines[agent]->checkReachable(x, ct, time))
-				return false;
-		}
-	}
-	return true;
-}
-
-bool CBS::checkSubsumption(CBSNode* n1, CBSNode* n2, list<Constraint> cons) //check whether n1 can subsume n2
-{
-	int agent, x, y, t;
-	constraint_type type;
-	assert(node->constraints.size() > 0);
-	tie(agent, x, y, t, type) = n1->constraints.front();
-
-	//first, all n1's path cost should <= n2's
-	// for (int i = 0; i < num_of_agents; i++)
+	// if (type == constraint_type::GLENGTH)
 	// {
-	// 	if (n1->path_costs[i] > n2->path_costs[i])
-	// 	{
+	// 	if (n2->path_costs[agent] <= t)
 	// 		return false;
-	// 	}
 	// }
 
-	if (type == constraint_type::POSITIVE_VERTEX || 
-		type == constraint_type::POSITIVE_EDGE || 
-		type == constraint_type::POSITIVE_BARRIER || 
-		type == constraint_type::POSITIVE_RANGE || 
-		type == constraint_type::GLENGTH || 
-		type == constraint_type::LEQLENGTH)
-	{
-		return false;
-	}
-
 	ConstraintTable ct(initial_constraints[agent]);
 	ct.build(*n2, agent);
-
-	ct.addConstraints(cons,agent);
 
 	if (type == constraint_type::VERTEX)
 	{
@@ -878,7 +829,6 @@ bool CBS::checkSubsumption(CBSNode* n1, CBSNode* n2, list<Constraint> cons) //ch
 	}
 	return true;
 }
-
 
 bool CBS::solve(double _time_limit, int _cost_lowerbound, int _cost_upperbound)
 {
@@ -953,11 +903,6 @@ bool CBS::solve(double _time_limit, int _cost_lowerbound, int _cost_upperbound)
 				if (checkSubsumption(compare_node,curr)) //if sompare_node subsumes curr
 				{
 					prune_node = true;
-
-					if (screen > 1)
-						cout << "	Prune " << *curr << endl <<
-					 	"	by " << *compare_node << endl;
-
 					break;
 				}
 				if (compare_node->parent->leftChild != nullptr)
@@ -983,19 +928,9 @@ bool CBS::solve(double _time_limit, int _cost_lowerbound, int _cost_upperbound)
 					curr->parent->leftChild = nullptr;
 					curr->parent->hasLeftChild = false;
 				}
-				//curr->parent->conflict->prune_priority = conflict_prune_priority::PRUNED;
-				curr->pruned = true;
-
-
 				continue;
 			}
-
-			
-
 		}
-
-
-		
 
 		if (!curr->h_computed) // heuristics has not been computed yet
 		{
@@ -1021,8 +956,6 @@ bool CBS::solve(double _time_limit, int _cost_lowerbound, int _cost_upperbound)
 			curr->open_handle = open_list.push(curr);
 			if (curr->g_val + curr->h_val <= focal_list_threshold)
 				curr->focal_handle = focal_list.push(curr);
-			num_HL_reinsert++;
-			
 			if (screen == 2)
 			{
 				cout << "	Reinsert " << *curr << endl;
@@ -1194,6 +1127,7 @@ bool CBS::solve(double _time_limit, int _cost_lowerbound, int _cost_upperbound)
 							child[i]->parent->leftChild = child[i];
 							child[i]->parent->hasLeftChild = true;
 						}
+							//child[i]->parent->leftChild = child[i];
 						else
 						{
 							child[i]->parent->rightChild = child[i];
@@ -1206,11 +1140,11 @@ bool CBS::solve(double _time_limit, int _cost_lowerbound, int _cost_upperbound)
 						}
 					}
 				}
-				// if (pruning)
-				//curr->conflict->prune_priority = conflict_prune_priority::SEEN;
+				if (pruning)
+					curr->conflict->prune_priority = conflict_prune_priority::SEEN;
 			}
 			// if (pruning)
-			//curr->conflict->prune_priority = conflict_prune_priority::SEEN;
+			// 	curr->conflict->prune_priority = conflict_prune_priority::SEEN;
 		}
 		if (curr->conflict != nullptr)
 		{

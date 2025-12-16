@@ -75,7 +75,6 @@ public:
 	bool hasLeftChild = false;
 	bool hasRightChild = false;
 	unordered_set<CBSNode*> ancestors;//Its ancestors
-	bool pruned = false;
 	
 	//For help identification
 	vector<int>path_costs;//Path cost for each node

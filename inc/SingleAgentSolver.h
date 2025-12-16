@@ -21,18 +21,29 @@ public:
 	struct compare_node
 	{
 		// returns true if n1 > n2 (note -- this gives us *min*-heap).
+		// bool operator()(const LLNode* n1, const LLNode* n2) const
+		// {
+		// 	if (n1->g_val + n1->h_val == n2->g_val + n2->h_val)
+		// 	{
+		// 		if (n1->h_val == n2->h_val)
+		// 		{
+		// 			//test for less rotate
+		// 			if (n1->rotate == n2->rotate)
+		// 				return rand() % 2;
+		// 			return n1->rotate >= n2->rotate;
+		// 		}
+		// 		return n1->h_val >= n2->h_val;
+		// 	}
+		// 	return n1->g_val + n1->h_val >= n2->g_val + n2->h_val;
+		// }
+		// returns true if n1 > n2 (note -- this gives us *min*-heap).
 		bool operator()(const LLNode* n1, const LLNode* n2) const
 		{
 			if (n1->g_val + n1->h_val == n2->g_val + n2->h_val)
 			{
 				if (n1->h_val == n2->h_val)
-				{
-					//test for less rotate
-					//if (n1->rotate == n2->rotate)
-						//return rand() % 2;
-						return 0;
-					//return n1->rotate >= n2->rotate;
-				}
+					return 0;
+					//return rand() % 2;
 				return n1->h_val >= n2->h_val;
 			}
 			return n1->g_val + n1->h_val >= n2->g_val + n2->h_val;

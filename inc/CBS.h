@@ -33,8 +33,6 @@ public:
 	uint64_t num_LL_expanded = 0;
 	uint64_t num_LL_generated = 0;
 
-	uint64_t num_HL_reinsert = 0;
-
 
 	CBSNode* dummy_start = nullptr;
 	CBSNode* goal_node = nullptr;
@@ -160,5 +158,4 @@ private:
 	inline void pushNode(CBSNode* node);
 
 	bool checkSubsumption(CBSNode* n1, CBSNode* n2);
-	bool checkSubsumption(CBSNode* n1, CBSNode* n2, list<Constraint> cons);
 };

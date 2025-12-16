@@ -12,7 +12,7 @@ enum conflict_priority { CARDINAL, SEMI, NON, UNKNOWN, PRIORITY_COUNT };
 enum constraint_type { LEQLENGTH, GLENGTH, RANGE, BARRIER, VERTEX, EDGE, 
 											POSITIVE_VERTEX, POSITIVE_EDGE, POSITIVE_BARRIER, POSITIVE_RANGE };
 
-enum conflict_prune_priority {PRUNED,SEEN, NEW, PRUNE_COUNT };
+enum conflict_prune_priority {SEEN, NEW, PRUNE_COUNT };
 
 // enum conflict_selection {RANDOM, EARLIEST, CONFLICTS, MCONSTRAINTS, FCONSTRAINTS, WIDTH, SINGLETONS, AGENTID};
 
@@ -67,8 +67,8 @@ public:
 	{
 		this->a1 = _a1;
 		this->a2 = _a2;
-		this->constraint1 = _constraint2;
-		this->constraint2 = _constraint1;
+		this->constraint1 = _constraint1;
+		this->constraint2 = _constraint2;
 		type = conflict_type::CORRIDOR;
 	}
 
